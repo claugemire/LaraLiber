@@ -1924,9 +1924,110 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
-  mounted: function mounted() {
-    console.log('Component mounted.');
+  data: function data() {
+    return {
+      books: null,
+      user: null,
+      searchTerm: 'beach',
+      searchResults: null,
+      booksUrl: '/api/books/' + this.user_id + '/' + this.api_secret
+    };
+  },
+  props: ['user_id', 'api_secret', 'gb_key'],
+  methods: {
+    searchBooks: function searchBooks() {
+      var _this = this;
+
+      axios.get('https://www.googleapis.com/books/v1/volumes?q=' + this.searchTerm + '&key=' + this.gb_key).then(function (response) {
+        return console.log('Searched for term ' + _this.searchTerm), console.log('at: ' + 'https://www.googleapis.com/books/v1/volumes?q=' + _this.searchTerm + '&key=' + _this.gb_key), _this.searchResults = response.data.items;
+      });
+    },
+    getBooks: function getBooks() {
+      var _this2 = this;
+
+      axios.get(this.booksUrl).then(function (response) {
+        return _this2.books = response.data.books, _this2.user = response.data.user, console.log("books are refreshed");
+      });
+    },
+    addBook: function addBook(book) {
+      console.log(book);
+    },
+    getAuthor: function getAuthor(authString) {
+      if (authString !== undefined) {
+        return authString.join(', ');
+      } else {
+        return '';
+      }
+    }
+  },
+  created: function created() {
+    var _this3 = this;
+
+    axios.get(this.booksUrl).then(function (response) {
+      return _this3.books = response.data.books, _this3.user = response.data.user;
+    });
   }
 });
 
@@ -37522,28 +37623,110 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "container" }, [
-      _c("div", { staticClass: "row justify-content-center" }, [
-        _c("div", { staticClass: "col-md-8" }, [
-          _c("div", { staticClass: "card" }, [
-            _c("div", { staticClass: "card-header" }, [_vm._v("Add Book")]),
-            _vm._v(" "),
-            _c("div", { staticClass: "card-body" }, [
-              _vm._v("\n                    Add a book here.\n                ")
-            ])
-          ])
+  return _c("div", { staticClass: "container" }, [
+    _c("div", { staticClass: "row justify-content-center" }, [
+      _c("div", { staticClass: "col-md-8" }, [
+        _c("div", { staticClass: "card" }, [
+          _c("div", { staticClass: "card-header" }, [_vm._v("Add A Book")]),
+          _vm._v(" "),
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.searchTerm,
+                expression: "searchTerm"
+              }
+            ],
+            attrs: { type: "text", name: "searchTerm" },
+            domProps: { value: _vm.searchTerm },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.searchTerm = $event.target.value
+              }
+            }
+          }),
+          _vm._v(" "),
+          _c(
+            "button",
+            { staticClass: "btn btn-info", on: { click: _vm.searchBooks } },
+            [_vm._v("search")]
+          ),
+          _vm._v(" "),
+          _c(
+            "div",
+            { attrs: { id: "search-results" } },
+            _vm._l(_vm.searchResults, function(result) {
+              return _c("div", { key: result.id, staticClass: "card" }, [
+                _c("div", { staticClass: "card-body flex" }, [
+                  _c("img", {
+                    attrs: { src: result.volumeInfo.imageLinks.thumbnail }
+                  }),
+                  _vm._v(" "),
+                  _c("div", [
+                    _c("h2", [_vm._v(_vm._s(result.volumeInfo.title))]),
+                    _vm._v(
+                      "\n\n                                    result.volumeInfo.authors.isEmpty()\n                                    By: " +
+                        _vm._s(_vm.getAuthor(result.volumeInfo.authors)) +
+                        "\n                                    "
+                    ),
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-info",
+                        on: {
+                          click: function($event) {
+                            return _vm.addBook(result)
+                          }
+                        }
+                      },
+                      [_vm._v("Add To My List")]
+                    )
+                  ])
+                ])
+              ])
+            }),
+            0
+          ),
+          _vm._v(" "),
+          _c(
+            "div",
+            { staticClass: "card-body" },
+            [
+              _c(
+                "button",
+                { staticClass: "btn btn-info", on: { click: _vm.getBooks } },
+                [_vm._v("refresh")]
+              ),
+              _vm._v(" "),
+              _vm._l(_vm.books, function(book) {
+                return _c("div", { key: book.id, staticClass: "card" }, [
+                  _c("div", { staticClass: "card-body flex" }, [
+                    _c("img", { attrs: { src: book.thumbnail } }),
+                    _vm._v(" "),
+                    _c("div", [
+                      _c("h2", [_vm._v(_vm._s(book.title))]),
+                      _vm._v(
+                        "\n                                    By: " +
+                          _vm._s(book.author) +
+                          "\n                                "
+                      )
+                    ])
+                  ])
+                ])
+              })
+            ],
+            2
+          )
         ])
       ])
     ])
-  }
-]
+  ])
+}
+var staticRenderFns = []
 render._withStripped = true
 
 

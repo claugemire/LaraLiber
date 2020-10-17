@@ -3,8 +3,9 @@
 namespace Tests\Unit;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use PHPUnit\Framework\TestCase;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
+use App\Models\User;
+use Tests\TestCase;
 
 class BookControllerTest extends TestCase
 {
@@ -13,8 +14,18 @@ class BookControllerTest extends TestCase
      *
      * @return void
      */
-    public function testExample()
+    public function testBookListingDeniedForAnonymousUser()
     {
-        $this->assertTrue(true);
+        $response = $this->get('/books');
+        $response->assertStatus(302);
+    }
+
+    public function testBookListingForLoggedInUser()
+    {
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->get('/books');
+        $response->assertStatus(200);
+        $response->assertViewIs('book.index');
+        $response->assertViewHas('books');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +16,7 @@ class BookController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth', ['except' => ['apiBooks', 'store','destroy','patch','update']]);
     }
 
     /**
@@ -27,9 +28,26 @@ class BookController extends Controller
     {
         $user = Auth::user();
         $books = $user->books;
-
-
         return view('book/index', ['books' => $books]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function apiBooks($user_id, $api_secret)
+    {
+        $user = User::findOrFail($user_id);
+
+        if($user->api_secret == $api_secret){
+        $books = $user->books;
+
+        return response()->json([
+            'user' => $user,
+            'books' => $books,
+        ]);
+        }
     }
 
     /**
@@ -40,7 +58,35 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //validate
+        $this->validate($request,[
+            'title' => 'required|max:255',
+            'author' => 'min:3',
+        ]);
+
+
+        $user = User::findOrFail($request->user_id);
+
+        if($user->api_secret == $request->api_secret){
+
+            $book = new Book();
+            $book->title = $request->title;
+            $book->user_id = $request->user_id;
+            $book->isbn = $request->isbn;
+            $book->author = $request->author;
+            $book->description = $request->description;
+            $book->page_count = $request->page_count;
+            $book->thumbnail = ($request->thumbnail) ? $request->thumbnail : asset('storage/book.png');;
+
+            //if successful, redirect
+            if($book->save()) {
+                return redirect()->json($book);
+            } else {
+                return response()->json(['error' => 'invalid'], 422);
+            }
+
+        }
+
     }
 
     /**
@@ -72,8 +118,8 @@ class BookController extends Controller
      * @param  \App\Models\Book  $book
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Book $book)
+    public function destroy($id)
     {
-        //
+        Book::destroy($id);
     }
 }
