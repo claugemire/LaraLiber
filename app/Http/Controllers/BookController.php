@@ -9,15 +9,15 @@ use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth', ['except' => ['apiBooks', 'store','destroy','patch','update']]);
-    }
+    // /**
+    //  * Create a new controller instance.
+    //  *
+    //  * @return void
+    //  */
+    // public function __construct()
+    // {
+    //     $this->middleware('auth', ['except' => ['apiBooks', 'store','destroy','patch','update']]);
+    // }
 
     /**
      * Display a listing of the resource.
@@ -58,12 +58,11 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        //validate
+
         $this->validate($request,[
             'title' => 'required|max:255',
             'author' => 'min:3',
         ]);
-
 
         $user = User::findOrFail($request->user_id);
 
@@ -78,9 +77,9 @@ class BookController extends Controller
             $book->page_count = $request->page_count;
             $book->thumbnail = ($request->thumbnail) ? $request->thumbnail : asset('storage/book.png');;
 
-            //if successful, redirect
+            //if successful
             if($book->save()) {
-                return redirect()->json($book);
+                return response()->json($book);
             } else {
                 return response()->json(['error' => 'invalid'], 422);
             }
@@ -118,8 +117,12 @@ class BookController extends Controller
      * @param  \App\Models\Book  $book
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        Book::destroy($id);
+        $user = User::findOrFail($request->user_id);
+
+        if($user->api_secret == $request->api_secret){
+            Book::destroy($id);
+        }
     }
 }

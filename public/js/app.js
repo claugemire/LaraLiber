@@ -1970,21 +1970,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -1992,7 +1977,26 @@ __webpack_require__.r(__webpack_exports__);
       user: null,
       searchTerm: 'beach',
       searchResults: null,
-      booksUrl: '/api/books/' + this.user_id + '/' + this.api_secret
+      booksUrl: '/api/books/' + this.user_id + '/' + this.api_secret,
+      bookDetail: {
+        show: false,
+        title: '',
+        thumbnail: '',
+        description: '',
+        author: '',
+        isbn: '',
+        page_count: '',
+        addToList: false
+      },
+      newBook: {
+        user_id: this.user_id,
+        title: '',
+        thumbnail: '',
+        description: '',
+        author: '',
+        isbn: '',
+        page_count: ''
+      }
     };
   },
   props: ['user_id', 'api_secret', 'gb_key'],
@@ -2011,8 +2015,62 @@ __webpack_require__.r(__webpack_exports__);
         return _this2.books = response.data.books, _this2.user = response.data.user, console.log("books are refreshed");
       });
     },
+    normalizeBookDataFromSearch: function normalizeBookDataFromSearch(book) {
+      var normalizedBook = {
+        user_id: this.user_id,
+        api_secret: this.api_secret,
+        title: book.volumeInfo.title,
+        thumbnail: book.volumeInfo.imageLinks.thumbnail,
+        description: book.volumeInfo.description,
+        author: this.getAuthor(book.volumeInfo.authors),
+        isbn: book.volumeInfo.industryIdentifiers[1].identifier,
+        page_count: book.volumeInfo.pageCount,
+        show: true,
+        addToList: true
+      };
+      return normalizedBook;
+    },
     addBook: function addBook(book) {
-      console.log(book);
+      var _this3 = this;
+
+      var normalize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      book = normalize ? this.normalizeBookDataFromSearch(book) : book;
+      axios({
+        method: "POST",
+        url: '/api/books/store',
+        params: book
+      }).then(function (response) {
+        return _this3.books.push(book), console.log("Book Saved!");
+      });
+    },
+    deleteBook: function deleteBook(book) {
+      var _this4 = this;
+
+      var index = this.books.indexOf(book);
+      axios({
+        method: "DELETE",
+        url: '/api/books/' + book.id,
+        params: {
+          user_id: this.user_id,
+          api_secret: this.api_secret
+        }
+      }).then(function (response) {
+        return _this4.books.splice(index, 1), console.log("Book Deleted!");
+      });
+    },
+    populateBookDetail: function populateBookDetail(book) {
+      var search = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      book = search ? this.normalizeBookDataFromSearch(book) : book;
+      this.bookDetail = {
+        title: book.title,
+        thumbnail: book.thumbnail,
+        description: book.description,
+        author: book.author,
+        isbn: book.isbn,
+        page_count: book.page_count,
+        show: true,
+        addToList: search
+      };
     },
     getAuthor: function getAuthor(authString) {
       if (authString !== undefined) {
@@ -2023,10 +2081,10 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   created: function created() {
-    var _this3 = this;
+    var _this5 = this;
 
     axios.get(this.booksUrl).then(function (response) {
-      return _this3.books = response.data.books, _this3.user = response.data.user;
+      return _this5.books = response.data.books, _this5.user = response.data.user;
     });
   }
 });
@@ -37625,9 +37683,69 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "container" }, [
     _c("div", { staticClass: "row justify-content-center" }, [
+      _c(
+        "div",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.bookDetail.show,
+              expression: "bookDetail.show"
+            }
+          ],
+          staticClass: "details col-md-4 bg-aqua",
+          attrs: { id: "details" }
+        },
+        [
+          _c("h2", [_vm._v(_vm._s(_vm.bookDetail.title))]),
+          _vm._v(" "),
+          _c("img", { attrs: { src: _vm.bookDetail.thumbnail } }),
+          _vm._v(" "),
+          _c("p", [
+            _vm._v(
+              "\n                " +
+                _vm._s(_vm.bookDetail.description) +
+                "\n            "
+            )
+          ]),
+          _vm._v(" "),
+          _c("p", [_vm._v(_vm._s(_vm.bookDetail.author))]),
+          _vm._v(" "),
+          _c("p", [_vm._v(_vm._s(_vm.bookDetail.isbn))]),
+          _vm._v(" "),
+          _c("p", [
+            _vm._v(" Page Count: " + _vm._s(_vm.bookDetail.page_count))
+          ]),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: _vm.bookDetail.addToList,
+                  expression: "bookDetail.addToList"
+                }
+              ],
+              staticClass: "btn btn-info",
+              on: {
+                click: function($event) {
+                  return _vm.addBook(_vm.bookDetail, false)
+                }
+              }
+            },
+            [_vm._v("Add To My List")]
+          )
+        ]
+      ),
+      _vm._v(" "),
       _c("div", { staticClass: "col-md-8" }, [
         _c("div", { staticClass: "card" }, [
-          _c("div", { staticClass: "card-header" }, [_vm._v("Add A Book")]),
+          _c("div", { staticClass: "card-header" }, [
+            _vm._v("Search For A Book To Add")
+          ]),
           _vm._v(" "),
           _c("input", {
             directives: [
@@ -37669,9 +37787,9 @@ var render = function() {
                   _c("div", [
                     _c("h2", [_vm._v(_vm._s(result.volumeInfo.title))]),
                     _vm._v(
-                      "\n\n                                    result.volumeInfo.authors.isEmpty()\n                                    By: " +
+                      "\n\n                                result.volumeInfo.authors.isEmpty()\n                                By: " +
                         _vm._s(_vm.getAuthor(result.volumeInfo.authors)) +
-                        "\n                                    "
+                        "\n                                "
                     ),
                     _c(
                       "button",
@@ -37684,6 +37802,19 @@ var render = function() {
                         }
                       },
                       [_vm._v("Add To My List")]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-info",
+                        on: {
+                          click: function($event) {
+                            return _vm.populateBookDetail(result, true)
+                          }
+                        }
+                      },
+                      [_vm._v("More Info")]
                     )
                   ])
                 ])
@@ -37702,19 +37833,47 @@ var render = function() {
                 [_vm._v("refresh")]
               ),
               _vm._v(" "),
-              _vm._l(_vm.books, function(book) {
-                return _c("div", { key: book.id, staticClass: "card" }, [
+              _vm._l(_vm.books, function(book, index) {
+                return _c("div", { key: index, staticClass: "card" }, [
                   _c("div", { staticClass: "card-body flex" }, [
                     _c("img", { attrs: { src: book.thumbnail } }),
                     _vm._v(" "),
                     _c("div", [
                       _c("h2", [_vm._v(_vm._s(book.title))]),
+                      _vm._v(" "),
+                      _c("h3", [_vm._v(_vm._s(book.id))]),
                       _vm._v(
-                        "\n                                    By: " +
+                        "\n                                By: " +
                           _vm._s(book.author) +
-                          "\n                                "
+                          "\n                            "
                       )
-                    ])
+                    ]),
+                    _vm._v(" "),
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-info",
+                        on: {
+                          click: function($event) {
+                            return _vm.populateBookDetail(book, false)
+                          }
+                        }
+                      },
+                      [_vm._v("More Info")]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-warning",
+                        on: {
+                          click: function($event) {
+                            return _vm.deleteBook(book)
+                          }
+                        }
+                      },
+                      [_vm._v("Remove")]
+                    )
                   ])
                 ])
               })
