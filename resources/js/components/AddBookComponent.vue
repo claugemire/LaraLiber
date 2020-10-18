@@ -1,18 +1,19 @@
 <template>
-<div class="container">
+<div class="container flex">
 
-    <button @click="getBookOrder" class="btn btn-dark">Get Order</button>
+
+    <div class="w-1/2 border-r-2 pr-5">
+    <h2 class="text-3xl">My Book List</h2>
     <button @click="saveOrder" class="btn btn-warning" v-show="showSaveOrder">Save Order</button>
     <div>
-        <div>
-            <div @click="sortBooks('title')" :class="{ 'alert-info': sortBy == 'title' }">Title <span v-if="sortBy == 'title'"><span v-if="sortDir =='asc'">&#9650;</span><span v-else>&#9660;</span></span></div>
-            <div @click="sortBooks('author')">Author</div>
-            <div @click="sortBooks('read')">Status</div>
-            <div @click="sortBooks('order')">My Order</div>
-            <div></div>
+        <div class="flex flex-row border-b-2 my-3">
+            <div @click="sortBooks('title')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'title' }">Title <span class="text-sm" v-if="sortBy == 'title'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
+            <div @click="sortBooks('author')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'author' }">Author <span class="text-sm" v-if="sortBy == 'author'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
+            <div @click="sortBooks('read')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'read' }">Status <span class="text-sm" v-if="sortBy == 'read'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
+            <div @click="sortBooks('order')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'order' }">My Order <span class="text-sm" v-if="sortBy == 'order'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
         </div>
     </div>
-    <!-- <div class="flex" v-for="(book, index) in sortedBooks" :key="index"> -->
+
     <div class="flex" v-for="(book, index) in books" :key="index">
         <div class="pr-3 pt-3">
             <img class="w-24" :src="book.thumbnail" />
@@ -33,10 +34,54 @@
             <button @click="moveItemUp(book)" class="btn btn-secondary btn-sm">&#8593;</button>
         </div>
     </div>
+    </div>
 
-    <div class="row justify-content-center">
 
-        <div id="details" class="details col-md-4 bg-aqua" v-show="bookDetail.show">
+
+
+
+
+
+    <div class="w-1/2 pl-4 pt-3 alert-secondary">
+
+
+
+
+                <input class="pl-3 rounded-l-lg rounded-r-none text-4xl bg-grey-200 w-4/5 mr-0" type="text" name="searchTerm" v-model="searchTerm" placeholder="Search for a Book" />
+                <button @click="searchBooks" class="btn btn-info text-2xl px-3 py-2 ml-0 mb-3 rounded-r-lg rounded-l-none">&#9906;</button>
+                <div id="search-results">
+                    <hr class="w-11/12 mb-3"/>
+
+
+                    <div class="w-11/12 bg-white rounded-md mb-3" v-for="result in searchResults" :key="result.id">
+                        <div class="card-body flex">
+                            <img class="mr-2" :src="result.volumeInfo.imageLinks.thumbnail" />
+                            <div class="flex flex-col">
+                                <div class="self-start h-full">
+                                    <h2 class="text-xl">{{ result.volumeInfo.title }}</h2>
+                                    By: {{ getAuthor(result.volumeInfo.authors) }}
+                                </div>
+                                <div class="self-start">
+                                    <button @click="addBook(result)" class="btn btn-success btn-sm">&#9733; Add To My List</button>
+                                    <button @click="populateBookDetail(result, true)" class="btn btn-info btn-sm">&#9728; More Info</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
+            </div>
+
+    </div>
+
+
+
+
+
+
+    <div id="details" class="details col-md-4 bg-aqua" v-show="bookDetail.show">
             <h2>{{ bookDetail.title }}</h2>
             <img :src="bookDetail.thumbnail" />
             <p>
@@ -48,31 +93,21 @@
             <button @click="addBook(bookDetail, false)" class="btn btn-success btn-sm" v-show="bookDetail.addToList">&#9733; Add To My List</button>
         </div>
 
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">Search For A Book To Add</div>
 
-                <input type="text" name="searchTerm" v-model="searchTerm" />
-                <button @click="searchBooks" class="btn btn-info">&#9906; Search</button>
-                <div id="search-results">
-                    <div class="card" v-for="result in searchResults" :key="result.id">
-                        <div class="card-body flex">
-                            <img :src="result.volumeInfo.imageLinks.thumbnail" />
-                            <div>
-                                <h2>{{ result.volumeInfo.title }}</h2>
 
-                                result.volumeInfo.authors.isEmpty()
-                                By: {{ getAuthor(result.volumeInfo.authors) }}
-                                <button @click="addBook(result)" class="btn btn-success btn-sm">&#9733; Add To My List</button>
-                                <button @click="populateBookDetail(result, true)" class="btn btn-info btn-sm">&#9728; More Info</button>
-                            </div>
 
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
+
+
+
+
+
+
+
+
+
+
+
 </div>
 </template>
 
@@ -85,7 +120,7 @@ export default {
             currentSortDir: 'asc',
             showSaveOrder: false,
             user: null,
-            searchTerm: 'beach',
+            searchTerm: null,
             searchResults: null,
             sortBy: 'order',
             sortDir: 'asc',
