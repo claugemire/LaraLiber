@@ -1970,14 +1970,36 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       books: null,
+      currentSort: 'title',
+      currentSortDir: 'asc',
       user: null,
       searchTerm: 'beach',
       searchResults: null,
-      booksUrl: '/api/books/' + this.user_id + '/' + this.api_secret,
+      sortBy: 'order',
+      sortDir: 'asc',
       bookDetail: {
         show: false,
         title: '',
@@ -2000,6 +2022,13 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   props: ['user_id', 'api_secret', 'gb_key'],
+  computed: {
+    sortedBooks: function sortedBooks() {
+      var sorted = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
+
+      return sorted;
+    }
+  },
   methods: {
     searchBooks: function searchBooks() {
       var _this = this;
@@ -2008,17 +2037,35 @@ __webpack_require__.r(__webpack_exports__);
         return console.log('Searched for term ' + _this.searchTerm), console.log('at: ' + 'https://www.googleapis.com/books/v1/volumes?q=' + _this.searchTerm + '&key=' + _this.gb_key), _this.searchResults = response.data.items;
       });
     },
+    sortBooks: function sortBooks() {
+      var sortBy = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'order';
+      var sortDir = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'asc';
+      this.sortBy = sortBy;
+
+      if (this.sortBy == sortBy) {
+        this.sortDir = this.sortDir == 'asc' ? 'desc' : 'asc';
+      }
+
+      console.log(this.sortBy + " | " + this.sortDir);
+    },
     getBooks: function getBooks() {
       var _this2 = this;
 
-      axios.get(this.booksUrl).then(function (response) {
+      var orderBy = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      var dir = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      axios({
+        method: "GET",
+        url: "/api/books/" + this.user_id + "/" + this.api_secret,
+        params: {
+          'order_by': 'title',
+          'dir': dir
+        }
+      }).then(function (response) {
         return _this2.books = response.data.books, _this2.user = response.data.user, console.log("books are refreshed");
       });
     },
     normalizeBookDataFromSearch: function normalizeBookDataFromSearch(book) {
       var normalizedBook = {
-        user_id: this.user_id,
-        api_secret: this.api_secret,
         title: book.volumeInfo.title,
         thumbnail: book.volumeInfo.imageLinks.thumbnail,
         description: book.volumeInfo.description,
@@ -2035,6 +2082,8 @@ __webpack_require__.r(__webpack_exports__);
 
       var normalize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       book = normalize ? this.normalizeBookDataFromSearch(book) : book;
+      book.user_id = this.user_id;
+      book.api_secret = this.api_secret;
       axios({
         method: "POST",
         url: '/api/books/store',
@@ -2047,15 +2096,48 @@ __webpack_require__.r(__webpack_exports__);
       var _this4 = this;
 
       var index = this.books.indexOf(book);
+
+      if (confirm("Are you sure that you want to delete " + book.title + "?")) {
+        axios({
+          method: "DELETE",
+          url: '/api/books/' + book.id,
+          params: {
+            user_id: this.user_id,
+            api_secret: this.api_secret
+          }
+        }).then(function (response) {
+          return _this4.books.splice(index, 1), console.log("Book Deleted!");
+        });
+      } else {
+        return;
+      }
+    },
+    updateReadStatus: function updateReadStatus(book) {
+      book.user_id = this.user_id;
+      book.api_secret = this.api_secret;
+      book.read = book.read == false ? true : false;
+      console.log(book.read);
       axios({
-        method: "DELETE",
-        url: '/api/books/' + book.id,
-        params: {
-          user_id: this.user_id,
-          api_secret: this.api_secret
-        }
+        method: "PATCH",
+        url: '/api/books/status/' + book.id,
+        params: book
       }).then(function (response) {
-        return _this4.books.splice(index, 1), console.log("Book Deleted!");
+        return console.log("Book updated!");
+      });
+    },
+    updateOrder: function updateOrder(book) {
+      var _this5 = this;
+
+      var normalize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      book = normalize ? this.normalizeBookDataFromSearch(book) : book;
+      book.user_id = this.user_id;
+      book.api_secret = this.api_secret;
+      axios({
+        method: "POST",
+        url: '/api/books/store',
+        params: book
+      }).then(function (response) {
+        return _this5.books.push(book), console.log("Book Saved!");
       });
     },
     populateBookDetail: function populateBookDetail(book) {
@@ -2081,10 +2163,10 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   created: function created() {
-    var _this5 = this;
+    var _this6 = this;
 
-    axios.get(this.booksUrl).then(function (response) {
-      return _this5.books = response.data.books, _this5.user = response.data.user;
+    axios.get("/api/books/" + this.user_id + "/" + this.api_secret).then(function (response) {
+      return _this6.books = response.data.books, _this6.user = response.data.user;
     });
   }
 });
@@ -37681,209 +37763,314 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "container" }, [
-    _c("div", { staticClass: "row justify-content-center" }, [
-      _c(
-        "div",
-        {
-          directives: [
-            {
-              name: "show",
-              rawName: "v-show",
-              value: _vm.bookDetail.show,
-              expression: "bookDetail.show"
-            }
-          ],
-          staticClass: "details col-md-4 bg-aqua",
-          attrs: { id: "details" }
-        },
-        [
-          _c("h2", [_vm._v(_vm._s(_vm.bookDetail.title))]),
-          _vm._v(" "),
-          _c("img", { attrs: { src: _vm.bookDetail.thumbnail } }),
-          _vm._v(" "),
-          _c("p", [
-            _vm._v(
-              "\n                " +
-                _vm._s(_vm.bookDetail.description) +
-                "\n            "
-            )
-          ]),
-          _vm._v(" "),
-          _c("p", [_vm._v(_vm._s(_vm.bookDetail.author))]),
-          _vm._v(" "),
-          _c("p", [_vm._v(_vm._s(_vm.bookDetail.isbn))]),
-          _vm._v(" "),
-          _c("p", [
-            _vm._v(" Page Count: " + _vm._s(_vm.bookDetail.page_count))
-          ]),
-          _vm._v(" "),
+  return _c(
+    "div",
+    { staticClass: "container" },
+    [
+      _c("div", [
+        _c("div", [
           _c(
-            "button",
+            "div",
             {
-              directives: [
-                {
-                  name: "show",
-                  rawName: "v-show",
-                  value: _vm.bookDetail.addToList,
-                  expression: "bookDetail.addToList"
-                }
-              ],
-              staticClass: "btn btn-info",
+              class: { "alert-info": _vm.sortBy == "title" },
               on: {
                 click: function($event) {
-                  return _vm.addBook(_vm.bookDetail, false)
+                  return _vm.sortBooks("title")
                 }
               }
             },
-            [_vm._v("Add To My List")]
-          )
-        ]
-      ),
+            [
+              _vm._v("Title "),
+              _vm.sortBy == "title"
+                ? _c("span", [
+                    _vm.sortDir == "asc"
+                      ? _c("span", [_vm._v("▲")])
+                      : _c("span", [_vm._v("▼")])
+                  ])
+                : _vm._e()
+            ]
+          ),
+          _vm._v(" "),
+          _c(
+            "div",
+            {
+              on: {
+                click: function($event) {
+                  return _vm.sortBooks("author")
+                }
+              }
+            },
+            [_vm._v("Author")]
+          ),
+          _vm._v(" "),
+          _c(
+            "div",
+            {
+              on: {
+                click: function($event) {
+                  return _vm.sortBooks("read")
+                }
+              }
+            },
+            [_vm._v("Status")]
+          ),
+          _vm._v(" "),
+          _c(
+            "div",
+            {
+              on: {
+                click: function($event) {
+                  return _vm.sortBooks("order")
+                }
+              }
+            },
+            [_vm._v("My Order")]
+          ),
+          _vm._v(" "),
+          _c("div")
+        ])
+      ]),
       _vm._v(" "),
-      _c("div", { staticClass: "col-md-8" }, [
-        _c("div", { staticClass: "card" }, [
-          _c("div", { staticClass: "card-header" }, [
-            _vm._v("Search For A Book To Add")
+      _vm._l(_vm.sortedBooks, function(book, index) {
+        return _c("div", { key: index, staticClass: "flex" }, [
+          _c("div", { staticClass: "pr-3 pt-3" }, [
+            _c("img", { staticClass: "w-24", attrs: { src: book.thumbnail } })
           ]),
           _vm._v(" "),
-          _c("input", {
+          _c("div", [
+            _c("h2", { staticClass: "text-2xl" }, [_vm._v(_vm._s(book.title))]),
+            _vm._v(
+              "\n                    " +
+                _vm._s(book.author) +
+                "\n                "
+            )
+          ]),
+          _vm._v(" "),
+          book.read == true
+            ? _c("div", { staticClass: "alert alert-success" }, [
+                _vm._v("You've read this book, Congrats!!")
+              ])
+            : _vm._e(),
+          _vm._v(" "),
+          _c("div", [_vm._v(_vm._s(book.order))]),
+          _vm._v(" "),
+          _c("div", [
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-info btn-sm",
+                on: {
+                  click: function($event) {
+                    return _vm.populateBookDetail(book, false)
+                  }
+                }
+              },
+              [_vm._v("☀ More Info")]
+            ),
+            _c("br"),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-danger btn-sm",
+                on: {
+                  click: function($event) {
+                    return _vm.deleteBook(book)
+                  }
+                }
+              },
+              [_vm._v("☓ Remove")]
+            ),
+            _vm._v(" "),
+            book.read == false
+              ? _c(
+                  "button",
+                  {
+                    staticClass: "btn btn-success btn-sm",
+                    on: {
+                      click: function($event) {
+                        return _vm.updateReadStatus(book)
+                      }
+                    }
+                  },
+                  [_vm._v("☑ Mark as Read")]
+                )
+              : _vm._e(),
+            _vm._v(" "),
+            book.read == true
+              ? _c(
+                  "button",
+                  {
+                    staticClass: "btn btn-warning btn-sm",
+                    on: {
+                      click: function($event) {
+                        return _vm.updateReadStatus(book)
+                      }
+                    }
+                  },
+                  [_vm._v("☑ Oops, Mark as Unread")]
+                )
+              : _vm._e(),
+            _vm._v(" "),
+            _c("hr"),
+            _vm._v(" "),
+            _c("button", { staticClass: "btn btn-secondary btn-sm" }, [
+              _vm._v("↓")
+            ]),
+            _vm._v(" "),
+            _c("button", { staticClass: "btn btn-secondary btn-sm" }, [
+              _vm._v("↑")
+            ])
+          ])
+        ])
+      }),
+      _vm._v(" "),
+      _c("div", { staticClass: "row justify-content-center" }, [
+        _c(
+          "div",
+          {
             directives: [
               {
-                name: "model",
-                rawName: "v-model",
-                value: _vm.searchTerm,
-                expression: "searchTerm"
+                name: "show",
+                rawName: "v-show",
+                value: _vm.bookDetail.show,
+                expression: "bookDetail.show"
               }
             ],
-            attrs: { type: "text", name: "searchTerm" },
-            domProps: { value: _vm.searchTerm },
-            on: {
-              input: function($event) {
-                if ($event.target.composing) {
-                  return
+            staticClass: "details col-md-4 bg-aqua",
+            attrs: { id: "details" }
+          },
+          [
+            _c("h2", [_vm._v(_vm._s(_vm.bookDetail.title))]),
+            _vm._v(" "),
+            _c("img", { attrs: { src: _vm.bookDetail.thumbnail } }),
+            _vm._v(" "),
+            _c("p", [
+              _vm._v(
+                "\n                " +
+                  _vm._s(_vm.bookDetail.description) +
+                  "\n            "
+              )
+            ]),
+            _vm._v(" "),
+            _c("p", [_vm._v(_vm._s(_vm.bookDetail.author))]),
+            _vm._v(" "),
+            _c("p", [_vm._v(_vm._s(_vm.bookDetail.isbn))]),
+            _vm._v(" "),
+            _c("p", [
+              _vm._v(" Page Count: " + _vm._s(_vm.bookDetail.page_count))
+            ]),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: _vm.bookDetail.addToList,
+                    expression: "bookDetail.addToList"
+                  }
+                ],
+                staticClass: "btn btn-success btn-sm",
+                on: {
+                  click: function($event) {
+                    return _vm.addBook(_vm.bookDetail, false)
+                  }
                 }
-                _vm.searchTerm = $event.target.value
+              },
+              [_vm._v("★ Add To My List")]
+            )
+          ]
+        ),
+        _vm._v(" "),
+        _c("div", { staticClass: "col-md-8" }, [
+          _c("div", { staticClass: "card" }, [
+            _c("div", { staticClass: "card-header" }, [
+              _vm._v("Search For A Book To Add")
+            ]),
+            _vm._v(" "),
+            _c("input", {
+              directives: [
+                {
+                  name: "model",
+                  rawName: "v-model",
+                  value: _vm.searchTerm,
+                  expression: "searchTerm"
+                }
+              ],
+              attrs: { type: "text", name: "searchTerm" },
+              domProps: { value: _vm.searchTerm },
+              on: {
+                input: function($event) {
+                  if ($event.target.composing) {
+                    return
+                  }
+                  _vm.searchTerm = $event.target.value
+                }
               }
-            }
-          }),
-          _vm._v(" "),
-          _c(
-            "button",
-            { staticClass: "btn btn-info", on: { click: _vm.searchBooks } },
-            [_vm._v("search")]
-          ),
-          _vm._v(" "),
-          _c(
-            "div",
-            { attrs: { id: "search-results" } },
-            _vm._l(_vm.searchResults, function(result) {
-              return _c("div", { key: result.id, staticClass: "card" }, [
-                _c("div", { staticClass: "card-body flex" }, [
-                  _c("img", {
-                    attrs: { src: result.volumeInfo.imageLinks.thumbnail }
-                  }),
-                  _vm._v(" "),
-                  _c("div", [
-                    _c("h2", [_vm._v(_vm._s(result.volumeInfo.title))]),
-                    _vm._v(
-                      "\n\n                                result.volumeInfo.authors.isEmpty()\n                                By: " +
-                        _vm._s(_vm.getAuthor(result.volumeInfo.authors)) +
-                        "\n                                "
-                    ),
-                    _c(
-                      "button",
-                      {
-                        staticClass: "btn btn-info",
-                        on: {
-                          click: function($event) {
-                            return _vm.addBook(result)
-                          }
-                        }
-                      },
-                      [_vm._v("Add To My List")]
-                    ),
-                    _vm._v(" "),
-                    _c(
-                      "button",
-                      {
-                        staticClass: "btn btn-info",
-                        on: {
-                          click: function($event) {
-                            return _vm.populateBookDetail(result, true)
-                          }
-                        }
-                      },
-                      [_vm._v("More Info")]
-                    )
-                  ])
-                ])
-              ])
             }),
-            0
-          ),
-          _vm._v(" "),
-          _c(
-            "div",
-            { staticClass: "card-body" },
-            [
-              _c(
-                "button",
-                { staticClass: "btn btn-info", on: { click: _vm.getBooks } },
-                [_vm._v("refresh")]
-              ),
-              _vm._v(" "),
-              _vm._l(_vm.books, function(book, index) {
-                return _c("div", { key: index, staticClass: "card" }, [
+            _vm._v(" "),
+            _c(
+              "button",
+              { staticClass: "btn btn-info", on: { click: _vm.searchBooks } },
+              [_vm._v("⚲ Search")]
+            ),
+            _vm._v(" "),
+            _c(
+              "div",
+              { attrs: { id: "search-results" } },
+              _vm._l(_vm.searchResults, function(result) {
+                return _c("div", { key: result.id, staticClass: "card" }, [
                   _c("div", { staticClass: "card-body flex" }, [
-                    _c("img", { attrs: { src: book.thumbnail } }),
+                    _c("img", {
+                      attrs: { src: result.volumeInfo.imageLinks.thumbnail }
+                    }),
                     _vm._v(" "),
                     _c("div", [
-                      _c("h2", [_vm._v(_vm._s(book.title))]),
-                      _vm._v(" "),
-                      _c("h3", [_vm._v(_vm._s(book.id))]),
+                      _c("h2", [_vm._v(_vm._s(result.volumeInfo.title))]),
                       _vm._v(
-                        "\n                                By: " +
-                          _vm._s(book.author) +
-                          "\n                            "
+                        "\n\n                                result.volumeInfo.authors.isEmpty()\n                                By: " +
+                          _vm._s(_vm.getAuthor(result.volumeInfo.authors)) +
+                          "\n                                "
+                      ),
+                      _c(
+                        "button",
+                        {
+                          staticClass: "btn btn-success btn-sm",
+                          on: {
+                            click: function($event) {
+                              return _vm.addBook(result)
+                            }
+                          }
+                        },
+                        [_vm._v("★ Add To My List")]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "button",
+                        {
+                          staticClass: "btn btn-info btn-sm",
+                          on: {
+                            click: function($event) {
+                              return _vm.populateBookDetail(result, true)
+                            }
+                          }
+                        },
+                        [_vm._v("☀ More Info")]
                       )
-                    ]),
-                    _vm._v(" "),
-                    _c(
-                      "button",
-                      {
-                        staticClass: "btn btn-info",
-                        on: {
-                          click: function($event) {
-                            return _vm.populateBookDetail(book, false)
-                          }
-                        }
-                      },
-                      [_vm._v("More Info")]
-                    ),
-                    _vm._v(" "),
-                    _c(
-                      "button",
-                      {
-                        staticClass: "btn btn-warning",
-                        on: {
-                          click: function($event) {
-                            return _vm.deleteBook(book)
-                          }
-                        }
-                      },
-                      [_vm._v("Remove")]
-                    )
+                    ])
                   ])
                 ])
-              })
-            ],
-            2
-          )
+              }),
+              0
+            )
+          ])
         ])
       ])
-    ])
-  ])
+    ],
+    2
+  )
 }
 var staticRenderFns = []
 render._withStripped = true

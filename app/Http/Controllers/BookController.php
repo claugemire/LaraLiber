@@ -36,17 +36,29 @@ class BookController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function apiBooks($user_id, $api_secret)
+    public function apiBooks(Request $request, $user_id, $api_secret)
     {
         $user = User::findOrFail($user_id);
 
         if($user->api_secret == $api_secret){
-        $books = $user->books;
 
-        return response()->json([
-            'user' => $user,
-            'books' => $books,
-        ]);
+            $order_by = ($request->order_by) ? $request->order_by : 'order';
+
+            switch ($request->dir) {
+                case 'desc':
+                    $books = $user->books->sortByDesc($order_by);
+                    break;
+                default:
+                    $books = $user->books->sortBy($order_by);
+                    break;
+            }
+
+            // return response()->json($books);
+
+            return response()->json([
+                'books' => $books,
+                'user' => $user,
+            ]);
         }
     }
 
@@ -100,16 +112,52 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Display the specified resource.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Book  $book
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Book $book)
+    public function patchStatus(Request $request, $id)
     {
-        //
+        $user = User::findOrFail($request->user_id);
+
+        if($user->api_secret == $request->api_secret){
+
+            $book = Book::findOrFail($id);
+
+            $book->read = ($book->read == 0) ? 1 : 0;
+
+            $book->save();
+
+            return response()->json($book->read);
+
+        }
+
+
     }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Book  $book
+     * @return \Illuminate\Http\Response
+     */
+    public function patchOrder(Request $request, $id)
+    {
+        return response()->json($id);
+    }
+
+    // /**
+    //  * Update the specified resource in storage.
+    //  *
+    //  * @param  \Illuminate\Http\Request  $request
+    //  * @param  \App\Models\Book  $book
+    //  * @return \Illuminate\Http\Response
+    //  */
+    // public function update(Request $request, Book $book)
+    // {
+    //     //
+    // }
 
     /**
      * Remove the specified resource from storage.

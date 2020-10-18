@@ -26,10 +26,6 @@
             @endguest
             @auth
 
-            @foreach ($books as $book)
-                {{ $book->title }}...<br/>
-            @endforeach
-
         <add-book user_id='{{ $user->id }}' api_secret='{{ $user->api_secret }}' gb_key='{{  env('API_KEY') }}' />
 
 
