@@ -25,7 +25,8 @@ class AddUsers extends Seeder
             insert([
                 'name' => 'tester',
                 'email' => 'jake+tester@jmctyre.com',
-                'password' => bcrypt('tester')
+                'password' => bcrypt('tester'),
+                'api_secret' => 'secret'
             ]);
     }
 }

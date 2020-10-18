@@ -1,112 +1,100 @@
 <template>
-<div class="container flex">
+<div>
 
+    <div class="container flex" v-show="!bookDetail.show">
 
-    <div class="w-1/2 border-r-2 pr-5">
-    <h2 class="text-3xl">My Book List</h2>
-    <button @click="saveOrder" class="btn btn-warning" v-show="showSaveOrder">Save Order</button>
-    <div>
-        <div class="flex flex-row border-b-2 my-3">
-            <div @click="sortBooks('title')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'title' }">Title <span class="text-sm" v-if="sortBy == 'title'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
-            <div @click="sortBooks('author')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'author' }">Author <span class="text-sm" v-if="sortBy == 'author'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
-            <div @click="sortBooks('read')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'read' }">Status <span class="text-sm" v-if="sortBy == 'read'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
-            <div @click="sortBooks('order')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'order' }">My Order <span class="text-sm" v-if="sortBy == 'order'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></div>
-        </div>
-    </div>
+        <div class="w-1/2 border-r-2 pr-5">
+            <h2 class="text-3xl">My Book List</h2>
+            <button @click="saveOrder" class="btn btn-warning text-3xl" v-show="showSaveOrder">Save Your Sort Order</button>
+            <div>
+                <div class="flex flex-row border-b-2 my-3">
+                    <button title="Sort By Title" @click="sortBooks('title')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'title' }">Title <span class="text-sm" v-if="sortBy == 'title'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
+                    <button title="Sort By Author" @click="sortBooks('author')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'author' }">Author <span class="text-sm" v-if="sortBy == 'author'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
+                    <button title="Sort By Read Status" @click="sortBooks('read')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'read' }">Status <span class="text-sm" v-if="sortBy == 'read'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
+                    <button title="Sort By My Order" @click="sortBooks('order')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'order' }">My Order <span class="text-sm" v-if="sortBy == 'order'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
+                </div>
+            </div>
 
-    <div class="flex" v-for="(book, index) in books" :key="index">
-        <div class="pr-3 pt-3">
-            <img class="w-24" :src="book.thumbnail" />
-        </div>
-        <div>
-            <h2 class="text-2xl">{{ book.title }}</h2>
-            {{ book.author }}
-        </div>
-        <div class="alert alert-success" v-if="book.read == true">You've read this book, Congrats!!</div>
-        <div>{{ book.order }}</div>
-        <div>
-            <button @click="populateBookDetail(book, false)" class="btn btn-info btn-sm">&#9728; More Info</button><br />
-            <button @click="deleteBook(book)" class="btn btn-danger btn-sm">&#9747; Remove</button>
-            <button @click="updateReadStatus(book)" class="btn btn-success btn-sm" v-if="book.read == false">&#9745; Mark as Read</button>
-            <button @click="updateReadStatus(book)" class="btn btn-warning btn-sm" v-if="book.read == true">&#9745; Oops, Mark as Unread</button>
-            <hr />
-            <button @click="moveItemDown(book)" class="btn btn-secondary btn-sm">&#8595;</button>
-            <button @click="moveItemUp(book)" class="btn btn-secondary btn-sm">&#8593;</button>
-        </div>
-    </div>
-    </div>
-
-
-
-
-
-
-
-    <div class="w-1/2 pl-4 pt-3 alert-secondary">
-
-
-
-
-                <input class="pl-3 rounded-l-lg rounded-r-none text-4xl bg-grey-200 w-4/5 mr-0" type="text" name="searchTerm" v-model="searchTerm" placeholder="Search for a Book" />
-                <button @click="searchBooks" class="btn btn-info text-2xl px-3 py-2 ml-0 mb-3 rounded-r-lg rounded-l-none">&#9906;</button>
-                <div id="search-results">
-                    <hr class="w-11/12 mb-3"/>
-
-
-                    <div class="w-11/12 bg-white rounded-md mb-3" v-for="result in searchResults" :key="result.id">
-                        <div class="card-body flex">
-                            <img class="mr-2" :src="result.volumeInfo.imageLinks.thumbnail" />
-                            <div class="flex flex-col">
-                                <div class="self-start h-full">
-                                    <h2 class="text-xl">{{ result.volumeInfo.title }}</h2>
-                                    By: {{ getAuthor(result.volumeInfo.authors) }}
-                                </div>
-                                <div class="self-start">
-                                    <button @click="addBook(result)" class="btn btn-success btn-sm">&#9733; Add To My List</button>
-                                    <button @click="populateBookDetail(result, true)" class="btn btn-info btn-sm">&#9728; More Info</button>
-                                </div>
-                            </div>
-
+            <div class="w-11/12 rounded-md mb-3" v-for="(book, index) in books" :key="index">
+                <div class="flex p-3">
+                    <img class="w-24 mr-2" :src="book.thumbnail" />
+                    <div class="flex flex-col w-full">
+                        <div class="self-start h-full">
+                            <h2 class="text-xl">{{ book.title }}</h2>
+                            By: {{ book.author }}
+                            <div class="alert alert-success p-2 text-sm" v-if="book.read == true">You've read this book, Congrats!!</div>
+                        </div>
+                        <div class="self-start">
+                            <button title="Get more info about this book" @click="populateBookDetail(book, false)" class="btn btn-info btn-sm">&#9728; Info</button>
+                            <button title="Mark this book as read" @click="updateReadStatus(book)" class="btn btn-success btn-sm" v-if="book.read == false">&#9745; Mark as Read</button>
+                            <button title="Mark this book as unread" @click="updateReadStatus(book)" class="btn btn-warning btn-sm" v-if="book.read == true">&#9745; Mark as Unread</button>
+                            <button title="Remove this book from your list" @click="deleteBook(book)" class="btn btn-danger btn-sm">&#9747;</button>
                         </div>
                     </div>
+                    <div class="w-5 self-end" v-if="sortBy == 'order'">
 
+                        <button title="Move Book Up" @click="moveItemUp(book)" class="btn btn-info btn-sm rounded-b-0 border-b-2" v-if="book.order > 0">&#8593;</button>
+                        <button title="Move Book Down" @click="moveItemDown(book)" class="btn btn-info btn-sm rounded-t-0">&#8595;</button>
+                    </div>
 
+                </div>
+            </div>
+
+        </div>
+
+        <div class="w-1/2 pl-4 pt-3 alert-secondary">
+
+            <input class="pl-3 rounded-l-lg rounded-r-none text-4xl bg-grey-200 w-4/5 mr-0" type="text" name="searchTerm" v-model="searchTerm" placeholder="Search for a Book" />
+            <button @click="searchBooks" class="btn btn-info text-2xl px-3 py-2 ml-0 mb-3 rounded-r-lg rounded-l-none">&#9906;</button>
+            <div id="search-results">
+                <hr class="w-11/12 mb-3" />
+
+                <div class="w-11/12 bg-white rounded-md mb-3" v-for="result in searchResults" :key="result.id">
+                    <div class="flex p-3">
+                        <img class="mr-2" :src="result.volumeInfo.imageLinks.thumbnail" />
+                        <div class="flex flex-col">
+                            <div class="self-start h-full">
+                                <h2 class="text-xl">{{ result.volumeInfo.title }}</h2>
+                                By: {{ getAuthor(result.volumeInfo.authors) }}
+                            </div>
+                            <div class="self-start">
+                                <button @click="addBook(result)" class="btn btn-success btn-sm">&#9733; Add To My List</button>
+                                <button @click="populateBookDetail(result, true)" class="btn btn-info btn-sm">&#9728; More Info</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
 
             </div>
 
-    </div>
-
-
-
-
-
-
-    <div id="details" class="details col-md-4 bg-aqua" v-show="bookDetail.show">
-            <h2>{{ bookDetail.title }}</h2>
-            <img :src="bookDetail.thumbnail" />
-            <p>
-                {{ bookDetail.description }}
-            </p>
-            <p>{{ bookDetail.author }}</p>
-            <p>{{ bookDetail.isbn }}</p>
-            <p> Page Count: {{ bookDetail.page_count }}</p>
-            <button @click="addBook(bookDetail, false)" class="btn btn-success btn-sm" v-show="bookDetail.addToList">&#9733; Add To My List</button>
         </div>
 
+    </div>
 
+    <div id="details" class="details alert-dark p-24 absolute-center w-full h-full" v-show="bookDetail.show">
+        <button class="p-3 text-2xl btn-secondary text-right w-full" @click="bookDetail.show = false">X</button>
 
+        <div class="w-full bg-white rounded-md mb-3">
+            <div class="flex p-3">
+                <img class="mr-3" :src="bookDetail.thumbnail" />
+                <div class="flex flex-col">
+                    <div class="self-start h-full text-xl">
+                        <h2 class="text-6xl">{{ bookDetail.title }}</h2>
+                        <p>By: <b>{{ bookDetail.author }}</b></p>
+                        <p>ISBN: {{ bookDetail.isbn }} | {{ bookDetail.page_count }} pages</p>
 
+                        <p>
+                            {{ bookDetail.description }}
+                        </p>
+                        <button @click="addBook(bookDetail, false); bookDetail.show = false" class="btn btn-success btn-sm" v-show="bookDetail.addToList">&#9733; Add To My List</button>
+                    </div>
+                </div>
 
+            </div>
+        </div>
 
-
-
-
-
-
-
-
-
-
+    </div>
 
 </div>
 </template>
@@ -152,12 +140,6 @@ export default {
         'api_secret',
         'gb_key'
     ],
-    // computed: {
-    //     sortedBooks: function () {
-    //         const sorted = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
-    //         return sorted;
-    //     }
-    // },
     methods: {
         searchBooks() {
             axios
@@ -237,6 +219,7 @@ export default {
             book.user_id = this.user_id;
             book.api_secret = this.api_secret;
             book.order = 0;
+            book.read = 0;
 
             axios({
                     method: "POST",
@@ -246,6 +229,7 @@ export default {
                 .then(
                     response => (
                         this.books.push(book),
+                        this.getBookOrder,
                         console.log("Book Saved!")
                     )
                 );
@@ -265,7 +249,7 @@ export default {
                         response => (
 
                             this.$data.books.splice(index, 1),
-
+                            this.getBookOrder,
                             console.log("Book Deleted!")
                         )
                     );

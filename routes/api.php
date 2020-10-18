@@ -24,6 +24,9 @@ Route::get('/books/{user_id}/{api_secret}', [App\Http\Controllers\BookController
 Route::post('/books/store', [App\Http\Controllers\BookController::class, 'store'])->name('store');
 
 Route::delete('/books/{id}', [App\Http\Controllers\BookController::class, 'destroy'])->name('delete');
+
 Route::patch('/books/order/{id}', [App\Http\Controllers\BookController::class, 'patchOrder'])->name('updateOrder');
+
 Route::patch('/books/orders', [App\Http\Controllers\BookController::class, 'patchAllOrders'])->name('updateOrders');
+
 Route::patch('/books/status/{id}', [App\Http\Controllers\BookController::class, 'patchStatus'])->name('updateStatus');
