@@ -1986,20 +1986,19 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       books: null,
       currentSort: 'title',
       currentSortDir: 'asc',
+      showSaveOrder: false,
       user: null,
       searchTerm: 'beach',
       searchResults: null,
       sortBy: 'order',
       sortDir: 'asc',
+      bookOrder: null,
       bookDetail: {
         show: false,
         title: '',
@@ -2022,13 +2021,12 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   props: ['user_id', 'api_secret', 'gb_key'],
-  computed: {
-    sortedBooks: function sortedBooks() {
-      var sorted = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
-
-      return sorted;
-    }
-  },
+  // computed: {
+  //     sortedBooks: function () {
+  //         const sorted = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
+  //         return sorted;
+  //     }
+  // },
   methods: {
     searchBooks: function searchBooks() {
       var _this = this;
@@ -2046,23 +2044,38 @@ __webpack_require__.r(__webpack_exports__);
         this.sortDir = this.sortDir == 'asc' ? 'desc' : 'asc';
       }
 
-      console.log(this.sortBy + " | " + this.sortDir);
+      this.books = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
     },
-    getBooks: function getBooks() {
-      var _this2 = this;
+    moveItemUp: function moveItemUp(book) {
+      var index = this.books.indexOf(book);
+      var nextUp = index - 1;
+      this.books[nextUp].order = parseInt(this.books[index].order);
+      this.books[index].order = parseInt(this.books[index].order) - 1;
+      this.sortBy = 'order';
+      this.sortDir = 'asc';
+      this.books = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
+      this.showSaveOrder = true;
+    },
+    moveItemDown: function moveItemDown(book) {
+      var index = this.books.indexOf(book);
+      var nextDown = index + 1;
+      this.books[nextDown].order = parseInt(this.books[index].order);
+      this.books[index].order = parseInt(this.books[index].order) + 1;
+      this.sortBy = 'order';
+      this.sortDir = 'asc';
+      this.books = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
+      this.showSaveOrder = true;
+    },
+    getBookOrder: function getBookOrder() {
+      var bookOrder = {};
+      var orderIndex = 0; // this.sortedBooks.forEach(book => {
 
-      var orderBy = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-      var dir = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      axios({
-        method: "GET",
-        url: "/api/books/" + this.user_id + "/" + this.api_secret,
-        params: {
-          'order_by': 'title',
-          'dir': dir
-        }
-      }).then(function (response) {
-        return _this2.books = response.data.books, _this2.user = response.data.user, console.log("books are refreshed");
+      this.books.forEach(function (book) {
+        bookOrder[orderIndex] = book.id;
+        book.order = orderIndex;
+        orderIndex++;
       });
+      this.bookOrder = bookOrder;
     },
     normalizeBookDataFromSearch: function normalizeBookDataFromSearch(book) {
       var normalizedBook = {
@@ -2078,24 +2091,25 @@ __webpack_require__.r(__webpack_exports__);
       return normalizedBook;
     },
     addBook: function addBook(book) {
-      var _this3 = this;
+      var _this2 = this;
 
       var normalize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       book = normalize ? this.normalizeBookDataFromSearch(book) : book;
       book.user_id = this.user_id;
       book.api_secret = this.api_secret;
+      book.order = 0;
       axios({
         method: "POST",
         url: '/api/books/store',
         params: book
       }).then(function (response) {
-        return _this3.books.push(book), console.log("Book Saved!");
+        return _this2.books.push(book), console.log("Book Saved!");
       });
     },
     deleteBook: function deleteBook(book) {
-      var _this4 = this;
+      var _this3 = this;
 
-      var index = this.books.indexOf(book);
+      var index = this.$data.books.indexOf(book);
 
       if (confirm("Are you sure that you want to delete " + book.title + "?")) {
         axios({
@@ -2106,7 +2120,7 @@ __webpack_require__.r(__webpack_exports__);
             api_secret: this.api_secret
           }
         }).then(function (response) {
-          return _this4.books.splice(index, 1), console.log("Book Deleted!");
+          return _this3.$data.books.splice(index, 1), console.log("Book Deleted!");
         });
       } else {
         return;
@@ -2125,20 +2139,21 @@ __webpack_require__.r(__webpack_exports__);
         return console.log("Book updated!");
       });
     },
-    updateOrder: function updateOrder(book) {
-      var _this5 = this;
+    updateAllOrders: function updateAllOrders() {
+      var _this4 = this;
 
-      var normalize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      book = normalize ? this.normalizeBookDataFromSearch(book) : book;
-      book.user_id = this.user_id;
-      book.api_secret = this.api_secret;
+      console.log(this.bookOrder);
       axios({
-        method: "POST",
-        url: '/api/books/store',
-        params: book
+        method: "PATCH",
+        url: '/api/books/orders',
+        params: this.bookOrder
       }).then(function (response) {
-        return _this5.books.push(book), console.log("Book Saved!");
+        return console.log("Order Saved"), _this4.showSaveOrder = false;
       });
+    },
+    saveOrder: function saveOrder() {
+      this.getBookOrder();
+      this.updateAllOrders();
     },
     populateBookDetail: function populateBookDetail(book) {
       var search = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
@@ -2163,10 +2178,18 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   created: function created() {
-    var _this6 = this;
+    var _this5 = this;
 
     axios.get("/api/books/" + this.user_id + "/" + this.api_secret).then(function (response) {
-      return _this6.books = response.data.books, _this6.user = response.data.user;
+      // this.books = response.data.books;
+      _this5.books = _.orderBy(response.data.books, [_this5.sortBy], [_this5.sortDir]);
+      _this5.user = response.data.user;
+
+      if (_this5.books[1].order == 0) {
+        _this5.getBookOrder();
+
+        _this5.updateAllOrders();
+      }
     });
   }
 });
@@ -37767,6 +37790,29 @@ var render = function() {
     "div",
     { staticClass: "container" },
     [
+      _c(
+        "button",
+        { staticClass: "btn btn-dark", on: { click: _vm.getBookOrder } },
+        [_vm._v("Get Order")]
+      ),
+      _vm._v(" "),
+      _c(
+        "button",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.showSaveOrder,
+              expression: "showSaveOrder"
+            }
+          ],
+          staticClass: "btn btn-warning",
+          on: { click: _vm.saveOrder }
+        },
+        [_vm._v("Save Order")]
+      ),
+      _vm._v(" "),
       _c("div", [
         _c("div", [
           _c(
@@ -37831,7 +37877,7 @@ var render = function() {
         ])
       ]),
       _vm._v(" "),
-      _vm._l(_vm.sortedBooks, function(book, index) {
+      _vm._l(_vm.books, function(book, index) {
         return _c("div", { key: index, staticClass: "flex" }, [
           _c("div", { staticClass: "pr-3 pt-3" }, [
             _c("img", { staticClass: "w-24", attrs: { src: book.thumbnail } })
@@ -37839,11 +37885,7 @@ var render = function() {
           _vm._v(" "),
           _c("div", [
             _c("h2", { staticClass: "text-2xl" }, [_vm._v(_vm._s(book.title))]),
-            _vm._v(
-              "\n                    " +
-                _vm._s(book.author) +
-                "\n                "
-            )
+            _vm._v("\n            " + _vm._s(book.author) + "\n        ")
           ]),
           _vm._v(" "),
           book.read == true
@@ -37914,13 +37956,31 @@ var render = function() {
             _vm._v(" "),
             _c("hr"),
             _vm._v(" "),
-            _c("button", { staticClass: "btn btn-secondary btn-sm" }, [
-              _vm._v("↓")
-            ]),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-secondary btn-sm",
+                on: {
+                  click: function($event) {
+                    return _vm.moveItemDown(book)
+                  }
+                }
+              },
+              [_vm._v("↓")]
+            ),
             _vm._v(" "),
-            _c("button", { staticClass: "btn btn-secondary btn-sm" }, [
-              _vm._v("↑")
-            ])
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-secondary btn-sm",
+                on: {
+                  click: function($event) {
+                    return _vm.moveItemUp(book)
+                  }
+                }
+              },
+              [_vm._v("↑")]
+            )
           ])
         ])
       }),

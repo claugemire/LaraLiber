@@ -132,8 +132,32 @@ class BookController extends Controller
             return response()->json($book->read);
 
         }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Book  $book
+     * @return \Illuminate\Http\Response
+     */
+    public function patchAllOrders(Request $request)
+    {
+
+        $bookOrder = $request->toArray();
+        $orderIndex = 0;
+        foreach ($bookOrder as $orderNum) {
+            $book = Book::findOrFail($orderNum);
+            $book->order = $orderIndex;
+            $book->save();
+            $orderIndex++;
+        }
 
 
+        // foreach ($request as $key => $value) {
+        //     $book = Book::findOrFail($value);
+        //     return response()->json($request);
+        // }
+        return response()->json($bookOrder);
     }
 
     /**
@@ -144,7 +168,7 @@ class BookController extends Controller
      */
     public function patchOrder(Request $request, $id)
     {
-        return response()->json($id);
+        return response()->json($request);
     }
 
     // /**

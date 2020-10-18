@@ -1,39 +1,38 @@
 <template>
 <div class="container">
 
-
-
-            <div>
-                <div>
-                    <div @click="sortBooks('title')" :class="{ 'alert-info': sortBy == 'title' }">Title <span v-if="sortBy == 'title'"><span v-if="sortDir =='asc'">&#9650;</span><span v-else>&#9660;</span></span></div>
-                    <div @click="sortBooks('author')">Author</div>
-                    <div @click="sortBooks('read')">Status</div>
-                    <div @click="sortBooks('order')">My Order</div>
-                    <div></div>
-                </div>
-            </div>
-            <div class="flex" v-for="(book, index) in sortedBooks" :key="index">
-                <div class="pr-3 pt-3">
-                    <img class="w-24" :src="book.thumbnail" />
-                </div>
-                <div>
-                    <h2 class="text-2xl">{{ book.title }}</h2>
-                    {{ book.author }}
-                </div>
-                <div class="alert alert-success" v-if="book.read == true">You've read this book, Congrats!!</div>
-                <div>{{ book.order }}</div>
-                <div>
-                    <button @click="populateBookDetail(book, false)" class="btn btn-info btn-sm">&#9728; More Info</button><br/>
-                    <button @click="deleteBook(book)" class="btn btn-danger btn-sm">&#9747; Remove</button>
-                    <button @click="updateReadStatus(book)" class="btn btn-success btn-sm" v-if="book.read == false">&#9745; Mark as Read</button>
-                    <button @click="updateReadStatus(book)" class="btn btn-warning btn-sm" v-if="book.read == true">&#9745; Oops, Mark as Unread</button>
-                    <hr/>
-                    <button class="btn btn-secondary btn-sm">&#8595;</button>
-                    <button class="btn btn-secondary btn-sm">&#8593;</button>
-                </div>
-            </div>
-
-
+    <button @click="getBookOrder" class="btn btn-dark">Get Order</button>
+    <button @click="saveOrder" class="btn btn-warning" v-show="showSaveOrder">Save Order</button>
+    <div>
+        <div>
+            <div @click="sortBooks('title')" :class="{ 'alert-info': sortBy == 'title' }">Title <span v-if="sortBy == 'title'"><span v-if="sortDir =='asc'">&#9650;</span><span v-else>&#9660;</span></span></div>
+            <div @click="sortBooks('author')">Author</div>
+            <div @click="sortBooks('read')">Status</div>
+            <div @click="sortBooks('order')">My Order</div>
+            <div></div>
+        </div>
+    </div>
+    <!-- <div class="flex" v-for="(book, index) in sortedBooks" :key="index"> -->
+    <div class="flex" v-for="(book, index) in books" :key="index">
+        <div class="pr-3 pt-3">
+            <img class="w-24" :src="book.thumbnail" />
+        </div>
+        <div>
+            <h2 class="text-2xl">{{ book.title }}</h2>
+            {{ book.author }}
+        </div>
+        <div class="alert alert-success" v-if="book.read == true">You've read this book, Congrats!!</div>
+        <div>{{ book.order }}</div>
+        <div>
+            <button @click="populateBookDetail(book, false)" class="btn btn-info btn-sm">&#9728; More Info</button><br />
+            <button @click="deleteBook(book)" class="btn btn-danger btn-sm">&#9747; Remove</button>
+            <button @click="updateReadStatus(book)" class="btn btn-success btn-sm" v-if="book.read == false">&#9745; Mark as Read</button>
+            <button @click="updateReadStatus(book)" class="btn btn-warning btn-sm" v-if="book.read == true">&#9745; Oops, Mark as Unread</button>
+            <hr />
+            <button @click="moveItemDown(book)" class="btn btn-secondary btn-sm">&#8595;</button>
+            <button @click="moveItemUp(book)" class="btn btn-secondary btn-sm">&#8593;</button>
+        </div>
+    </div>
 
     <div class="row justify-content-center">
 
@@ -48,8 +47,6 @@
             <p> Page Count: {{ bookDetail.page_count }}</p>
             <button @click="addBook(bookDetail, false)" class="btn btn-success btn-sm" v-show="bookDetail.addToList">&#9733; Add To My List</button>
         </div>
-
-
 
         <div class="col-md-8">
             <div class="card">
@@ -86,11 +83,13 @@ export default {
             books: null,
             currentSort: 'title',
             currentSortDir: 'asc',
+            showSaveOrder: false,
             user: null,
             searchTerm: 'beach',
             searchResults: null,
             sortBy: 'order',
             sortDir: 'asc',
+            bookOrder: null,
             bookDetail: {
                 show: false,
                 title: '',
@@ -118,12 +117,12 @@ export default {
         'api_secret',
         'gb_key'
     ],
-    computed: {
-        sortedBooks: function () {
-            const sorted = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
-            return sorted;
-        }
-    },
+    // computed: {
+    //     sortedBooks: function () {
+    //         const sorted = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
+    //         return sorted;
+    //     }
+    // },
     methods: {
         searchBooks() {
             axios
@@ -136,30 +135,54 @@ export default {
                     )
                 );
         },
-        sortBooks(sortBy='order', sortDir='asc') {
+        sortBooks(sortBy = 'order', sortDir = 'asc') {
+
             this.sortBy = sortBy;
-            if(this.sortBy == sortBy){
+            if (this.sortBy == sortBy) {
                 this.sortDir = (this.sortDir == 'asc') ? 'desc' : 'asc';
             }
-            console.log(this.sortBy + " | " + this.sortDir);
+
+            this.books = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
 
         },
-        getBooks(orderBy = null, dir = null) {
-            axios({
-                    method: "GET",
-                    url: "/api/books/" + this.user_id + "/" + this.api_secret,
-                    params: {
-                        'order_by': 'title',
-                        'dir': dir
-                    }
-                })
-                .then(
-                    response => (
-                        this.books = response.data.books,
-                        this.user = response.data.user,
-                        console.log("books are refreshed")
-                    )
-                );
+        moveItemUp(book) {
+
+            const index = this.books.indexOf(book);
+            const nextUp = index - 1;
+
+            this.books[nextUp].order = parseInt(this.books[index].order);
+            this.books[index].order = parseInt(this.books[index].order) - 1;
+
+            this.sortBy = 'order';
+            this.sortDir = 'asc';
+            this.books = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
+            this.showSaveOrder = true;
+
+        },
+        moveItemDown(book) {
+
+            const index = this.books.indexOf(book);
+            const nextDown = index + 1;
+
+            this.books[nextDown].order = parseInt(this.books[index].order);
+            this.books[index].order = parseInt(this.books[index].order) + 1;
+
+            this.sortBy = 'order';
+            this.sortDir = 'asc';
+            this.books = _.orderBy(this.books, [this.sortBy], [this.sortDir]);
+            this.showSaveOrder = true;
+
+        },
+        getBookOrder() {
+            let bookOrder = {};
+            let orderIndex = 0;
+            // this.sortedBooks.forEach(book => {
+            this.books.forEach(book => {
+                bookOrder[orderIndex] = book.id;
+                book.order = orderIndex;
+                orderIndex++;
+            });
+            this.bookOrder = bookOrder;
         },
         normalizeBookDataFromSearch(book) {
             const normalizedBook = {
@@ -178,6 +201,7 @@ export default {
             book = (normalize) ? this.normalizeBookDataFromSearch(book) : book;
             book.user_id = this.user_id;
             book.api_secret = this.api_secret;
+            book.order = 0;
 
             axios({
                     method: "POST",
@@ -192,24 +216,24 @@ export default {
                 );
         },
         deleteBook(book) {
-            const index = this.books.indexOf(book);
+            const index = this.$data.books.indexOf(book);
             if (confirm("Are you sure that you want to delete " + book.title + "?")) {
                 axios({
-                    method: "DELETE",
-                    url: '/api/books/' + book.id,
-                    params: {
-                        user_id: this.user_id,
-                        api_secret: this.api_secret
-                    }
-                })
-                .then(
-                    response => (
+                        method: "DELETE",
+                        url: '/api/books/' + book.id,
+                        params: {
+                            user_id: this.user_id,
+                            api_secret: this.api_secret
+                        }
+                    })
+                    .then(
+                        response => (
 
-                        this.books.splice(index, 1),
+                            this.$data.books.splice(index, 1),
 
-                        console.log("Book Deleted!")
-                    )
-                );
+                            console.log("Book Deleted!")
+                        )
+                    );
             } else {
                 return;
             }
@@ -232,25 +256,26 @@ export default {
                     )
                 );
 
-
-
         },
-        updateOrder(book, normalize = true) {
-            book = (normalize) ? this.normalizeBookDataFromSearch(book) : book;
-            book.user_id = this.user_id;
-            book.api_secret = this.api_secret;
+        updateAllOrders() {
+
+            console.log(this.bookOrder);
 
             axios({
-                    method: "POST",
-                    url: '/api/books/store',
-                    params: book
+                    method: "PATCH",
+                    url: '/api/books/orders',
+                    params: this.bookOrder
                 })
                 .then(
                     response => (
-                        this.books.push(book),
-                        console.log("Book Saved!")
+                        console.log("Order Saved"),
+                        this.showSaveOrder = false
                     )
                 );
+        },
+        saveOrder() {
+            this.getBookOrder();
+            this.updateAllOrders();
         },
         populateBookDetail(book, search = false) {
             book = (search) ? this.normalizeBookDataFromSearch(book) : book;
@@ -277,10 +302,17 @@ export default {
         axios
             .get("/api/books/" + this.user_id + "/" + this.api_secret)
             .then(
-                response => (
-                    this.books = response.data.books,
-                    this.user = response.data.user
-                )
+                response => {
+                    // this.books = response.data.books;
+                    this.books = _.orderBy(response.data.books, [this.sortBy], [this.sortDir]);
+                    this.user = response.data.user;
+
+                    if (this.books[1].order == 0) {
+                        this.getBookOrder();
+                        this.updateAllOrders();
+                    }
+                }
+
             );
     }
 }
