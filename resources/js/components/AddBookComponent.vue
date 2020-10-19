@@ -42,9 +42,10 @@
         </div>
 
         <div class="w-1/2 pl-4 pt-3 alert-secondary">
-
-            <input class="pl-3 rounded-l-lg rounded-r-none text-4xl bg-grey-200 w-4/5 mr-0" type="text" name="searchTerm" v-model="searchTerm" placeholder="Search for a Book" />
-            <button @click="searchBooks" class="btn btn-info text-2xl px-3 py-2 ml-0 mb-3 rounded-r-lg rounded-l-none">&#9906;</button>
+            <form v-on:submit.prevent="searchBooks">
+                <input class="pl-3 rounded-l-lg rounded-r-none text-4xl bg-grey-200 w-4/5 mr-0" type="text" name="searchTerm" v-model="searchTerm" placeholder="Search for a Book" />
+                <button @click="searchBooks" class="btn btn-info text-2xl px-3 py-2 ml-0 mb-3 rounded-r-lg rounded-l-none">&#9906;</button>
+            </form>
             <div id="search-results">
                 <hr class="w-11/12 mb-3" />
 
@@ -76,7 +77,7 @@
 
         <div class="w-full bg-white rounded-md mb-3">
             <div class="flex p-3">
-                <img class="mr-3" :src="bookDetail.thumbnail" />
+                <img class="mr-3 h-48" :src="bookDetail.thumbnail" />
                 <div class="flex flex-col">
                     <div class="self-start h-full text-xl">
                         <h2 class="text-6xl">{{ bookDetail.title }}</h2>
