@@ -37,6 +37,9 @@ class BookController extends Controller
                 'books' => $books,
                 'user' => $user,
             ]);
+        } else {
+            return response('unauthorized', 302)
+                  ->header('Content-Type', 'text/plain');
         }
     }
 
@@ -70,6 +73,9 @@ class BookController extends Controller
             } else {
                 return response()->json(['error' => 'invalid'], 422);
             }
+        } else {
+            return response('unauthorized', 302)
+                  ->header('Content-Type', 'text/plain');
         }
     }
 
@@ -92,6 +98,9 @@ class BookController extends Controller
             $book->save();
 
             return response()->json($book->read);
+        } else {
+            return response('unauthorized', 302)
+                  ->header('Content-Type', 'text/plain');
         }
     }
 
@@ -120,13 +129,19 @@ class BookController extends Controller
      *
      * @param \Illuminate\Http\Request $request
      * @param  integer $id
+     * @return \Illuminate\Http\Response JSON format
      */
     public function destroy(Request $request, $id)
     {
         $user = User::findOrFail($request->user_id);
 
         if ($user->api_secret == $request->api_secret) {
-            Book::destroy($id);
+            if(Book::destroy($id)){
+                return response()->json(['message' => 'success']);
+            }
+        } else {
+            return response('unauthorized', 302)
+                  ->header('Content-Type', 'text/plain');
         }
     }
 }

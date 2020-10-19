@@ -18,7 +18,8 @@ class AddUsers extends Seeder
             insert([
                 'name' => 'jake',
                 'email' => 'jake@jmctyre.com',
-                'password' => bcrypt('jake')
+                'password' => bcrypt('jake'),
+                'api_secret' => 'secret'
             ]);
 
         DB::table('users')->
