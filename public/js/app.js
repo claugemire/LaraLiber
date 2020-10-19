@@ -2008,7 +2008,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -37929,7 +37928,7 @@ var render = function() {
                     }
                   },
                   [
-                    _vm._v("My Order "),
+                    _vm._v("My Sort Order "),
                     _vm.sortBy == "order"
                       ? _c("span", { staticClass: "text-sm" }, [
                           _vm.sortDir == "asc"
@@ -38039,22 +38038,20 @@ var render = function() {
                     _vm._v(" "),
                     _vm.sortBy == "order"
                       ? _c("div", { staticClass: "w-5 self-end" }, [
-                          book.order > 0
-                            ? _c(
-                                "button",
-                                {
-                                  staticClass:
-                                    "btn btn-info btn-sm rounded-b-0 border-b-2",
-                                  attrs: { title: "Move Book Up" },
-                                  on: {
-                                    click: function($event) {
-                                      return _vm.moveItemUp(book)
-                                    }
-                                  }
-                                },
-                                [_vm._v("↑")]
-                              )
-                            : _vm._e(),
+                          _c(
+                            "button",
+                            {
+                              staticClass:
+                                "btn btn-info btn-sm rounded-b-0 border-b-2",
+                              attrs: { title: "Move Book Up" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.moveItemUp(book)
+                                }
+                              }
+                            },
+                            [_vm._v("↑")]
+                          ),
                           _vm._v(" "),
                           _c(
                             "button",

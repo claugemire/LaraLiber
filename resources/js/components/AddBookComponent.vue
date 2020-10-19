@@ -11,7 +11,7 @@
                     <button title="Sort By Title" @click="sortBooks('title')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'title' }">Title <span class="text-sm" v-if="sortBy == 'title'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
                     <button title="Sort By Author" @click="sortBooks('author')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'author' }">Author <span class="text-sm" v-if="sortBy == 'author'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
                     <button title="Sort By Read Status" @click="sortBooks('read')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'read' }">Status <span class="text-sm" v-if="sortBy == 'read'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
-                    <button title="Sort By My Order" @click="sortBooks('order')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'order' }">My Order <span class="text-sm" v-if="sortBy == 'order'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
+                    <button title="Sort By My Order" @click="sortBooks('order')" class="py-2 text-center flex-1 rounded-t-lg text-l" :class="{ 'alert-secondary': sortBy == 'order' }">My Sort Order <span class="text-sm" v-if="sortBy == 'order'"><span v-if="sortDir =='asc'">&#9660;</span><span v-else>&#9650;</span></span></button>
                 </div>
             </div>
 
@@ -32,8 +32,7 @@
                         </div>
                     </div>
                     <div class="w-5 self-end" v-if="sortBy == 'order'">
-
-                        <button title="Move Book Up" @click="moveItemUp(book)" class="btn btn-info btn-sm rounded-b-0 border-b-2" v-if="book.order > 0">&#8593;</button>
+                        <button title="Move Book Up" @click="moveItemUp(book)" class="btn btn-info btn-sm rounded-b-0 border-b-2">&#8593;</button>
                         <button title="Move Book Down" @click="moveItemDown(book)" class="btn btn-info btn-sm rounded-t-0">&#8595;</button>
                     </div>
 
