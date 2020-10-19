@@ -2008,6 +2008,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -38077,41 +38078,54 @@ var render = function() {
         ),
         _vm._v(" "),
         _c("div", { staticClass: "w-1/2 pl-4 pt-3 alert-secondary" }, [
-          _c("input", {
-            directives: [
-              {
-                name: "model",
-                rawName: "v-model",
-                value: _vm.searchTerm,
-                expression: "searchTerm"
-              }
-            ],
-            staticClass:
-              "pl-3 rounded-l-lg rounded-r-none text-4xl bg-grey-200 w-4/5 mr-0",
-            attrs: {
-              type: "text",
-              name: "searchTerm",
-              placeholder: "Search for a Book"
-            },
-            domProps: { value: _vm.searchTerm },
-            on: {
-              input: function($event) {
-                if ($event.target.composing) {
-                  return
-                }
-                _vm.searchTerm = $event.target.value
-              }
-            }
-          }),
-          _vm._v(" "),
           _c(
-            "button",
+            "form",
             {
-              staticClass:
-                "btn btn-info text-2xl px-3 py-2 ml-0 mb-3 rounded-r-lg rounded-l-none",
-              on: { click: _vm.searchBooks }
+              on: {
+                submit: function($event) {
+                  $event.preventDefault()
+                  return _vm.searchBooks($event)
+                }
+              }
             },
-            [_vm._v("⚲")]
+            [
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: _vm.searchTerm,
+                    expression: "searchTerm"
+                  }
+                ],
+                staticClass:
+                  "pl-3 rounded-l-lg rounded-r-none text-4xl bg-grey-200 w-4/5 mr-0",
+                attrs: {
+                  type: "text",
+                  name: "searchTerm",
+                  placeholder: "Search for a Book"
+                },
+                domProps: { value: _vm.searchTerm },
+                on: {
+                  input: function($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.searchTerm = $event.target.value
+                  }
+                }
+              }),
+              _vm._v(" "),
+              _c(
+                "button",
+                {
+                  staticClass:
+                    "btn btn-info text-2xl px-3 py-2 ml-0 mb-3 rounded-r-lg rounded-l-none",
+                  on: { click: _vm.searchBooks }
+                },
+                [_vm._v("⚲")]
+              )
+            ]
           ),
           _vm._v(" "),
           _c(
@@ -38216,7 +38230,7 @@ var render = function() {
         _c("div", { staticClass: "w-full bg-white rounded-md mb-3" }, [
           _c("div", { staticClass: "flex p-3" }, [
             _c("img", {
-              staticClass: "mr-3",
+              staticClass: "mr-3 h-48",
               attrs: { src: _vm.bookDetail.thumbnail }
             }),
             _vm._v(" "),
