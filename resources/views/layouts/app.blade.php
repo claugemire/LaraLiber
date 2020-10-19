@@ -20,7 +20,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
+    <div id="app" class="flex flex-col h-screen">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
                 <a class="navbar-brand text-2xl" href="{{ url('/') }}">
@@ -43,11 +43,6 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
                             </li>
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
                         @else
                             <li class="nav-item dropdown">
                                 <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
@@ -80,6 +75,10 @@
         <main class="py-4">
             @yield('content')
         </main>
+        <footer class="pb-4 text-gray-500 w-full">
+            <hr class="pb-4" />
+            <h2 class="text-center text-l">Jake McTyre | jake@jmctyre.com | 479 434-0416</h2>
+        </footer>
     </div>
 </body>
 </html>

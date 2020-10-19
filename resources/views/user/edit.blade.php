@@ -29,6 +29,10 @@
 
             </form>
 
+            <div class="alert-info text-center p-2 mt-4">
+                You can access your personal book list via our API by using the link below:</br>
+                <b>{{ Request::root() }}/api/books/{{ $user->id }}/{{ $user->api_secret }}</b>
+            </div>
 
         </div>
     </div>

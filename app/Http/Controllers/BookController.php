@@ -9,39 +9,19 @@ use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
-    // /**
-    //  * Create a new controller instance.
-    //  *
-    //  * @return void
-    //  */
-    // public function __construct()
-    // {
-    //     $this->middleware('auth', ['except' => ['apiBooks', 'store','destroy','patch','update']]);
-    // }
-
     /**
-     * Display a listing of the resource.
+     * Display a listing of books by user.
      *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        $user = Auth::user();
-        $books = $user->books;
-        return view('book/index', ['books' => $books]);
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @param  integer $user_id
+     * @param  string $api_secret
+     * @return \Illuminate\Http\Response JSON
      */
     public function apiBooks(Request $request, $user_id, $api_secret)
     {
         $user = User::findOrFail($user_id);
 
-        if($user->api_secret == $api_secret){
-
+        if ($user->api_secret == $api_secret) {
             $order_by = ($request->order_by) ? $request->order_by : 'order';
 
             switch ($request->dir) {
@@ -53,8 +33,6 @@ class BookController extends Controller
                     break;
             }
 
-            // return response()->json($books);
-
             return response()->json([
                 'books' => $books,
                 'user' => $user,
@@ -63,23 +41,21 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created book in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response JSON
      */
     public function store(Request $request)
     {
-
-        $this->validate($request,[
+        $this->validate($request, [
             'title' => 'required|max:255',
             'author' => 'min:3',
         ]);
 
         $user = User::findOrFail($request->user_id);
 
-        if($user->api_secret == $request->api_secret){
-
+        if ($user->api_secret == $request->api_secret) {
             $book = new Book();
             $book->title = $request->title;
             $book->user_id = $request->user_id;
@@ -87,42 +63,28 @@ class BookController extends Controller
             $book->author = $request->author;
             $book->description = $request->description;
             $book->page_count = $request->page_count;
-            $book->thumbnail = ($request->thumbnail) ? $request->thumbnail : asset('storage/book.png');;
+            $book->thumbnail = ($request->thumbnail) ? $request->thumbnail : asset('storage/book.png');
 
-            //if successful
-            if($book->save()) {
+            if ($book->save()) {
                 return response()->json($book);
             } else {
                 return response()->json(['error' => 'invalid'], 422);
             }
-
         }
-
     }
 
     /**
-     * Display the specified resource.
+     * Updates the read status of a book specified by $id
      *
-     * @param  \App\Models\Book  $book
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Book $book)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Book  $book
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @param  integer $id
+     * @return \Illuminate\Http\Response JSON
      */
     public function patchStatus(Request $request, $id)
     {
         $user = User::findOrFail($request->user_id);
 
-        if($user->api_secret == $request->api_secret){
-
+        if ($user->api_secret == $request->api_secret) {
             $book = Book::findOrFail($id);
 
             $book->read = ($book->read == 0) ? 1 : 0;
@@ -130,19 +92,17 @@ class BookController extends Controller
             $book->save();
 
             return response()->json($book->read);
-
         }
     }
 
     /**
-     * Display the specified resource.
+     * Update the order field of all the books inside of the $request param
      *
-     * @param  \App\Models\Book  $book
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response JSON format
      */
     public function patchAllOrders(Request $request)
     {
-
         $bookOrder = $request->toArray();
         $orderIndex = 0;
         foreach ($bookOrder as $orderNum) {
@@ -152,48 +112,20 @@ class BookController extends Controller
             $orderIndex++;
         }
 
-
-        // foreach ($request as $key => $value) {
-        //     $book = Book::findOrFail($value);
-        //     return response()->json($request);
-        // }
         return response()->json($bookOrder);
     }
 
     /**
-     * Display the specified resource.
+     * Remove the specified book from storage.
      *
-     * @param  \App\Models\Book  $book
-     * @return \Illuminate\Http\Response
-     */
-    public function patchOrder(Request $request, $id)
-    {
-        return response()->json($request);
-    }
-
-    // /**
-    //  * Update the specified resource in storage.
-    //  *
-    //  * @param  \Illuminate\Http\Request  $request
-    //  * @param  \App\Models\Book  $book
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function update(Request $request, Book $book)
-    // {
-    //     //
-    // }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Book  $book
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @param  integer $id
      */
     public function destroy(Request $request, $id)
     {
         $user = User::findOrFail($request->user_id);
 
-        if($user->api_secret == $request->api_secret){
+        if ($user->api_secret == $request->api_secret) {
             Book::destroy($id);
         }
     }

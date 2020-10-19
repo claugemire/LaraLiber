@@ -22,8 +22,6 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index']);
 
-Route::resource('books', BookController::class);
-
 Route::get('/user', [App\Http\Controllers\UserController::class, 'edit'])->name('user');
 
 Route::post('/user', [App\Http\Controllers\UserController::class, 'update'])->name('user.update');
